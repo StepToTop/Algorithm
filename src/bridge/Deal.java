@@ -2,18 +2,15 @@ package bridge;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
 
-import com.google.gson.*;
 
 public class Deal {
 
     private int[][] points;
-    private int[] pointsTemp;
-    private JsonObject json;
+    private int[] pointsTemp, unionLabel;
     private int pointsNumber, edgeNum, Component;
     private ArrayList<Edge> edge;
+    private ArrayList<Union> unions;
 
     private class Edge {
         int v1, v2;
@@ -23,43 +20,59 @@ public class Deal {
         }
     }
 
-    public Deal() {
-        JsonParser parse =new JsonParser();
-        File data = new File("D:\\Ultimate\\Algorithm\\src\\bridge\\mediumDG.json");
-        try {
+    private class Union {
+        ArrayList<Integer> points;
+        int Number;
+        Union(int num) {
+            this.points = new ArrayList<>();
+            this.Number = num;
+        }
 
-            this.json = (JsonObject)parse.parse(new FileReader(data));
+        @Override
+        public boolean equals(Object obj) {
+            return ((Union)obj).Number == this.Number;
+        }
+    }
+
+    public Deal() {
+        this.edge = new ArrayList<>();
+        this.unions = new ArrayList<>();
+        this.edgeNum = 0;
+        File data = new File("D:\\Ultimate\\Algorithm\\src\\bridge\\test.txt");
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(data));
+            String str;
+            String[] strArr;
+            while((str = br.readLine()) != null) {
+                strArr = str.split(" +");
+
+                if (strArr.length < 2) {
+
+                    this.pointsNumber = Integer.parseInt(strArr[0]);
+                    this.points = new int[this.pointsNumber][this.pointsNumber];
+                } else {
+
+                    this.edgeNum += 1;
+                    int i = Integer.parseInt(strArr[0]), j = Integer.parseInt(strArr[1]);
+                    this.edge.add(i<j?new Edge(i, j):new Edge(j, i));
+                    if (i == j) {
+                        this.points[i][i] += 1;
+                        continue;
+                    }
+                    this.points[i][j] += 1;
+                    this.points[j][i] += 1;
+                }
+            }
         }catch (Exception e) {
             System.out.println(e.toString());
         }
-        this.pointsNumber = this.json.get("Number").getAsInt();
         init();
     }
 
     private void init() {
-        edge = new ArrayList<>();
-        edgeNum = 0;
-        this.points = new int[this.pointsNumber][this.pointsNumber];
-        for (int i = 0; i < this.pointsNumber; i++) {
-            JsonArray ja = this.json.getAsJsonObject("Edge").getAsJsonArray(String.valueOf(i));
-            if (ja==null) {
-                continue;
-            }
-            edgeNum += ja.size();
-            for (int j = 0; j < ja.size(); j++) {
-                int temp = ja.get(j).getAsInt();
-                this.edge.add(i<temp?new Edge(i,temp):new Edge(temp, i));
-                if (i == temp) {
-                    this.points[i][i] += 1;
-                    continue;
-                }
-                this.points[i][temp] += 1;
-                this.points[temp][i] += 1;
-            }
-        }
-        Component = this.UnionFind();
+        Component = this.UnionCount();
         System.out.println("一共有"+this.edge.size()+"条边");
-        System.out.println(Component);
+        System.out.println("一共存在"+this.unions.size()+"个连通片");
     }
 
     public void UnionDeal() {
@@ -68,40 +81,53 @@ public class Deal {
         startNs = System.nanoTime();
         for (int i = 0; i < edgeNum; i++) {
             Edge temp = edge.get(i);
-            edge.remove(i);
-            if (UnionFind() != this.Component) {
+            this.points[temp.v1][temp.v2] -= 1;
+            this.points[temp.v2][temp.v1] -= 1;
+            if (!this.UnionFind(temp.v1, temp.v2)) {
                 count++;
             }
-            edge.add(i, temp);
+            this.points[temp.v1][temp.v2] += 1;
+            this.points[temp.v2][temp.v1] += 1;
         }
         endNs = System.nanoTime();
         System.out.println("存在桥的数目为："+count+"\n用时"+(endNs - startNs)+"纳秒");
     }
 
-    private int UnionFind() {
-        int[] tempPoint = new int[this.pointsNumber];
-        Set<Integer> tempSet = new HashSet<>();
+    private boolean UnionFind(int v1, int v2) {
+        initTempRec();
+        return DFSFind(v1, v2);
+    }
+
+    private int UnionCount() {
+        this.unionLabel = new int[this.pointsNumber];
         int tempEdgeSize = this.edge.size(), i;
-        for (i = 0; i < tempPoint.length; i++) {
-            tempPoint[i] = i;
+        for (i = 0; i < unionLabel.length; i++) {
+            unionLabel[i] = i;
         }
 
         for (i = 0; i < tempEdgeSize; i++) {
             Edge temp = this.edge.get(i);
-            replaceAll(tempPoint, tempPoint[temp.v2], tempPoint[temp.v1]);
+            replaceAll(unionLabel[temp.v2], unionLabel[temp.v1]);
         }
 
-        for (i = 0; i < tempPoint.length; i++) {
-            tempSet.add(tempPoint[i]);
+        for (i = 0; i < unionLabel.length; i++) {
+            int index = unions.indexOf(new Union(unionLabel[i]));
+            if (index >= 0) {
+                unions.get(index).points.add(i);
+            }else {
+                Union temp = new Union(unionLabel[i]);
+                temp.points.add(i);
+                unions.add(temp);
+            }
         }
 
-        return tempSet.size();
+        return unions.size();
     }
 
-    private void replaceAll(int[]temp, int s, int d) {
-        for (int i = 0; i < temp.length; i++) {
-            if (temp[i] == s) {
-                temp[i] = d;
+    private void replaceAll(int s, int d) {
+        for (int i = 0; i < this.unionLabel.length; i++) {
+            if (this.unionLabel[i] == s) {
+                this.unionLabel[i] = d;
             }
         }
     }
@@ -147,22 +173,6 @@ public class Deal {
                     if(this.DFSFind(i, aim)) {
                         return true;
                     }
-                }
-            }
-        }
-        return false;
-    }
-
-    private boolean DFSFindB(int now, int aim) {
-        if (this.points[now][aim] != 0) {
-            return true;
-        } else {
-            for (int i = now-1; i > 0; i--) {
-                if (this.points[now][i] == 0) {
-                    continue;
-                }
-                if (this.DFSFindB(i, aim)) {
-                    return true;
                 }
             }
         }
