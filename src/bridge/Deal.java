@@ -38,7 +38,7 @@ public class Deal {
         this.edge = new ArrayList<>();
         this.unions = new ArrayList<>();
         this.edgeNum = 0;
-        File data = new File("D:\\Ultimate\\Algorithm\\src\\bridge\\test.txt");
+        File data = new File("D:\\Ultimate\\Algorithm\\src\\bridge\\mediumDG.txt");
         try {
             BufferedReader br = new BufferedReader(new FileReader(data));
             String str;
