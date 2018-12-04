@@ -1,36 +1,23 @@
 package bridge;
 
-import com.google.gson.*;
-
 import java.io.*;
+import java.util.Random;
 
 public class GenJ {
-    private JsonObject json;
-    public GenJ(String fileName) {
+    public GenJ(String fileName, int number, int edgeNumber) {
         File file = new File(fileName+".txt");
-        json = new JsonObject();
-        int Count = 0;
-        JsonObject edge = new JsonObject();
+        Random rd = new Random();
         try {
-            BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
-            String str;
-            String []strArr;
-            while((str = br.readLine()) != null) {
-                strArr = str.split(" ");
-                if (!edge.has(strArr[0])) {
-                    edge.add(strArr[0], new JsonArray());
-                    Count ++;
-                }
-                edge.getAsJsonArray(strArr[0]).add(Integer.parseInt(strArr[1]));
+            BufferedWriter bw = new BufferedWriter(new FileWriter(file));
+            int i = 0;
+            bw.write(number+"");
+            while (i < edgeNumber) {
+                bw.newLine();
+                bw.write(rd.nextInt(number) + " "  + rd.nextInt(number));
+                i++;
             }
-        }catch (Exception e) {
-            System.out.println(e.toString());
-        }
-        json.addProperty("Number", Count);
-        json.add("Edge", edge);
-        File jsonFile = new File(fileName + ".json");
-        try {
-            (new FileWriter(jsonFile)).write((new Gson()).toJson(json));
+            bw.flush();
+            bw.close();
         }catch (Exception e) {
             System.out.println(e.toString());
         }

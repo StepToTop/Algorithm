@@ -38,7 +38,7 @@ public class Deal {
         this.edge = new ArrayList<>();
         this.unions = new ArrayList<>();
         this.edgeNum = 0;
-        File data = new File("D:\\Ultimate\\Algorithm\\src\\bridge\\mediumDG.txt");
+        File data = new File("D:\\Ultimate\\Algorithm\\src\\bridge\\testD.txt");
         try {
             BufferedReader br = new BufferedReader(new FileReader(data));
             String str;
@@ -81,21 +81,40 @@ public class Deal {
         startNs = System.nanoTime();
         for (int i = 0; i < edgeNum; i++) {
             Edge temp = edge.get(i);
-            this.points[temp.v1][temp.v2] -= 1;
-            this.points[temp.v2][temp.v1] -= 1;
+            edge.remove(i);
             if (!this.UnionFind(temp.v1, temp.v2)) {
                 count++;
             }
-            this.points[temp.v1][temp.v2] += 1;
-            this.points[temp.v2][temp.v1] += 1;
+            edge.add(i, temp);
         }
         endNs = System.nanoTime();
-        System.out.println("存在桥的数目为："+count+"\n用时"+(endNs - startNs)+"纳秒");
+        System.out.println("使用并查集得存在桥的数目为："+count+"\n用时"+(endNs - startNs)+"纳秒");
     }
 
     private boolean UnionFind(int v1, int v2) {
-        initTempRec();
-        return DFSFind(v1, v2);
+        int[] temp = new int[this.pointsNumber];
+        int tempEdgeSize = this.edge.size(), i;
+        for (i = 0; i < this.pointsNumber; i++) {
+            temp[i] = -1;
+//            temp[i] = i;
+        }
+
+        for (i = 0; i < tempEdgeSize; i++) {
+            Edge tempE = this.edge.get(i);
+            replaceRoot(temp, tempE.v1, tempE.v2);
+//            replaceAll(temp, temp[tempE.v2], temp[tempE.v1]);
+        }
+
+        int r1 = temp[v1], r2 = temp[v2];
+        boolean result;
+        if (r1 == -1 || r2 == -1) {
+            result = false;
+        } else {
+            result = getRoot(temp, v1) == getRoot(temp, v2);
+//            result = r1 == r2;
+        }
+
+        return result;
     }
 
     private int UnionCount() {
@@ -107,7 +126,7 @@ public class Deal {
 
         for (i = 0; i < tempEdgeSize; i++) {
             Edge temp = this.edge.get(i);
-            replaceAll(unionLabel[temp.v2], unionLabel[temp.v1]);
+            replaceAll(unionLabel, unionLabel[temp.v2], unionLabel[temp.v1]);
         }
 
         for (i = 0; i < unionLabel.length; i++) {
@@ -124,12 +143,37 @@ public class Deal {
         return unions.size();
     }
 
-    private void replaceAll(int s, int d) {
-        for (int i = 0; i < this.unionLabel.length; i++) {
-            if (this.unionLabel[i] == s) {
-                this.unionLabel[i] = d;
+    private void replaceAll(int[] arr, int s, int d) {
+        for (int i = 0; i < arr.length; i++) {
+            if (arr[i] == s) {
+                arr[i] = d;
             }
         }
+    }
+
+    private void replaceRoot(int[] arr, int s, int d) {
+        if (arr[s] == -1 && arr[d] == -1) {
+            arr[s] = s;
+            arr[d] = s;
+        } else if (arr[s] == -1 || arr[d] == -1) {
+            int temp = arr[s] == -1?getRoot(arr, d):getRoot(arr, s);
+            //int temp = arr[s] == -1?arr[d]:arr[s];
+            arr[s] = temp;
+            arr[d] = temp;
+        } else {
+            int index1 = getRoot(arr, s);
+            int index2 = getRoot(arr, d);
+            if (index1 != index2) {
+                arr[index2] = arr[index1];
+            }
+        }
+    }
+
+    private int getRoot(int[] temp, int index) {
+        while(index != temp[index]) {
+            index = temp[index];
+        }
+        return index;
     }
 
     private void initTempRec() {
@@ -149,7 +193,6 @@ public class Deal {
                 this.points[i][j] -= 1;
                 this.points[j][i] -= 1;
                 if (!this.DFSFind(i, j)) {
-                    System.out.println(i + "和" + j + "之间存在桥");
                     count++;
                 }
                 this.points[i][j] += 1;
@@ -157,7 +200,7 @@ public class Deal {
             }
         }
         endNs = System.nanoTime();
-        System.out.println("存在桥的数目为："+count+"\n用时"+(endNs - startNs)+"纳秒");
+        System.out.println("使用dfs检测得存在桥的数目为："+count+"\n用时"+(endNs - startNs)+"纳秒");
     }
 
     private boolean DFSFind(int now, int aim) {
@@ -186,6 +229,13 @@ public class Deal {
             }
             System.out.println();
         }
+    }
+
+    private void debugCom(int[] arr) {
+        for (int i = 0; i < this.pointsNumber; i++) {
+            System.out.print(arr[i] + " ");
+        }
+        System.out.println();
     }
 
 }
