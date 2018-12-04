@@ -71,13 +71,13 @@ public class Deal {
 
     private void init() {
         Component = this.UnionCount();
-        System.out.println("一共有"+this.edge.size()+"条边");
-        System.out.println("一共存在"+this.unions.size()+"个连通片");
+        /*System.out.println("一共有"+this.edge.size()+"条边");
+        System.out.println("一共存在"+this.unions.size()+"个连通片");*/
     }
 
-    public void UnionDeal() {
+    public long UnionDeal() {
         int count = 0;
-        double startNs, endNs;
+        long startNs, endNs;
         startNs = System.nanoTime();
         for (int i = 0; i < edgeNum; i++) {
             Edge temp = edge.get(i);
@@ -89,6 +89,7 @@ public class Deal {
         }
         endNs = System.nanoTime();
         System.out.println("使用并查集得存在桥的数目为："+count+"\n用时"+(endNs - startNs)+"纳秒");
+        return (endNs - startNs);
     }
 
     private boolean UnionFind(int v1, int v2) {
@@ -180,9 +181,32 @@ public class Deal {
         this.pointsTemp = new int[this.pointsNumber];
     }
 
-    public void DFSDeal() {
+    public void newDFSDeal() {
         int count = 0;
-        double startNs, endNs;
+        long startNs, endNs;
+        startNs = System.nanoTime();
+        for (int i = 0; i < this.edgeNum; i++) {
+            Edge temp = edge.get(i);
+            int v1 = temp.v1, v2 = temp.v2;
+            if (v1 == v2) {
+                continue;
+            }
+            initTempRec();
+            this.points[v1][v2] -= 1;
+            this.points[v2][v1] -= 1;
+            if (!this.DFSFind(v1, v2)) {
+                count++;
+            }
+            this.points[v1][v2] += 1;
+            this.points[v2][v1] += 1;
+        }
+        endNs = System.nanoTime();
+        System.out.println("使用dfs检测得存在桥的数目为："+count+"\n用时"+(endNs - startNs)+"纳秒");
+    }
+
+    public long DFSDeal() {
+        int count = 0;
+        long startNs, endNs;
         startNs = System.nanoTime();
         for (int i = 0; i < this.pointsNumber; i++) {
             for (int j = i; j < this.pointsNumber; j++) {
@@ -201,6 +225,7 @@ public class Deal {
         }
         endNs = System.nanoTime();
         System.out.println("使用dfs检测得存在桥的数目为："+count+"\n用时"+(endNs - startNs)+"纳秒");
+        return (endNs - startNs);
     }
 
     private boolean DFSFind(int now, int aim) {

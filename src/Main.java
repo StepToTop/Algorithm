@@ -3,9 +3,18 @@ import bridge.*;
 public class Main {
 
     public static void main(String[] args) {
-        new GenJ("D:\\Ultimate\\Algorithm\\src\\bridge\\testD", 10000, 20000);
-        (new Deal()).DFSDeal();
-        (new Deal()).UnionDeal();
+        for (int i = 1; i < 11; i++) {
+            System.out.println("///////////在"+ i*1000 +"个点，"+ 2000*i +"条边的情况下///////////");
+            int j = 3;
+            long dfs = 0, union = 0;
+            while(j-- != 0) {
+                new GenJ("D:\\Ultimate\\Algorithm\\src\\bridge\\testD", i * 1000, i * 2000);
+                dfs += (new Deal()).DFSDeal();
+                union += (new Deal()).UnionDeal();
+            }
+            System.out.println("///////////DFS："+ dfs/3 +"纳秒；Union:"+ union/3 +"纳秒///////////");
+
+        }
     }
 
 }
