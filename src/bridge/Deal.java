@@ -2,15 +2,16 @@ package bridge;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Stack;
 
 
 public class Deal {
 
     private int[][] points;
-    private int[] pointsTemp, unionLabel;
-    private int pointsNumber, edgeNum, Component;
+    private int[] pointsTemp, unionLabel, DFN, LOW;
+    private int pointsNumber, edgeNum, Component, height;
     private ArrayList<Edge> edge;
-    private ArrayList<Union> unions;
+    private Stack<Integer> stack;
 
     private class Edge {
         int v1, v2;
@@ -20,23 +21,9 @@ public class Deal {
         }
     }
 
-    private class Union {
-        ArrayList<Integer> points;
-        int Number;
-        Union(int num) {
-            this.points = new ArrayList<>();
-            this.Number = num;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            return ((Union)obj).Number == this.Number;
-        }
-    }
-
     public Deal() {
         this.edge = new ArrayList<>();
-        this.unions = new ArrayList<>();
+        //this.unions = new ArrayList<>();
         this.edgeNum = 0;
         File data = new File("D:\\Ultimate\\Algorithm\\src\\bridge\\testD.txt");
         try {
@@ -70,9 +57,9 @@ public class Deal {
     }
 
     private void init() {
-        Component = this.UnionCount();
-        /*System.out.println("一共有"+this.edge.size()+"条边");
-        System.out.println("一共存在"+this.unions.size()+"个连通片");*/
+        this.Component = this.UnionCount();
+        System.out.println("一共有"+this.edge.size()+"条边");
+        System.out.println("一共存在"+Component+"个连通片");
     }
 
     public long UnionDeal() {
@@ -120,11 +107,18 @@ public class Deal {
         return result;
     }
 
-    private int UnionCount() {
+    private int UnionCount() { //tarjan
+        initTempRec();
+        /*this.DFN = new int[this.pointsNumber];
+        this.LOW = new int[this.pointsNumber];
+        this.height = 0;
+        this.stack = new Stack<>();*/
         this.unionLabel = new int[this.pointsNumber];
+        ArrayList<Integer> list = new ArrayList<>();
         int tempEdgeSize = this.edge.size(), i;
-        for (i = 0; i < unionLabel.length; i++) {
-            unionLabel[i] = i;
+
+        for (i = 0; i < this.pointsNumber; i++) {
+            this.unionLabel[i] = i;
         }
 
         for (i = 0; i < tempEdgeSize; i++) {
@@ -132,18 +126,39 @@ public class Deal {
             replaceAll(unionLabel, unionLabel[temp.v2], unionLabel[temp.v1]);
         }
 
-        for (i = 0; i < unionLabel.length; i++) {
-            int index = unions.indexOf(new Union(unionLabel[i]));
-            if (index >= 0) {
-                unions.get(index).points.add(i);
-            }else {
-                Union temp = new Union(unionLabel[i]);
-                temp.points.add(i);
-                unions.add(temp);
+        for (i = 0; i < this.pointsNumber; i++) {
+            if (list.contains(this.unionLabel[i]))
+                continue;
+            list.add(this.unionLabel[i]);
+        }
+        return list.size();
+    }
+
+    private void DFSTFind(int index) {
+        this.pointsTemp[index] = 1;
+        this.DFN[index] = ++this.height;
+        this.LOW[index] = this.height;
+        this.stack.push(index);
+        for (int i = 0; i < this.points[index].length; i ++) {
+            if (this.points[index][i] <= 0) {
+                continue;
+            }
+            if (this.DFN[i] > 0) {
+                DFSTFind(i);
+                this.LOW[index] = Math.min(this.LOW[index], this.LOW[i]);
+            } else if (this.pointsTemp[i] > 0) {
+                this.LOW[index] = Math.min(this.LOW[index], this.DFN[i]);
+            }
+        }
+        if (this.DFN[index] == this.LOW[index]) {
+            this.pointsTemp[index] = 0;
+            this.Component++;
+            while (this.stack.lastElement() != index) {
+                this.pointsTemp[this.stack.lastElement()] = 0;
+                this.stack.pop();
             }
         }
 
-        return unions.size();
     }
 
     private void replaceAll(int[] arr, int s, int d) {
@@ -154,7 +169,7 @@ public class Deal {
         }
     }
 
-    private void replaceRoot(int[] arr, int s, int d) {
+    /*private void replaceRoot(int[] arr, int s, int d) {
         if (arr[s] == -1 && arr[d] == -1) {
             arr[s] = s;
             arr[d] = s;
@@ -170,7 +185,7 @@ public class Deal {
                 arr[index2] = arr[index1];
             }
         }
-    }
+    }*/
 
     private void replaceRootRank(int[] arr, int[] rank, int s, int d) {
         if (arr[s] == -1 && arr[d] == -1) {
@@ -187,7 +202,7 @@ public class Deal {
             int index1 = getRoot(arr, s);
             int index2 = getRoot(arr, d);
             if (index1 == index2) {
-                return;
+                return ;
             } else if (rank[index1] > rank[index2]) {
                 arr[index2] = index1;
             } else if (rank[index2] > rank[index1]) {
@@ -234,7 +249,7 @@ public class Deal {
         return endNs - startNs;
     }
 
-    public long DFSDeal() {
+    /*public long DFSDeal() {
         int count = 0;
         long startNs, endNs;
         startNs = System.nanoTime();
@@ -256,7 +271,7 @@ public class Deal {
         endNs = System.nanoTime();
         System.out.println("使用dfs检测得存在桥的数目为："+count+"\n用时"+(endNs - startNs)+"纳秒");
         return (endNs - startNs);
-    }
+    }*/
 
     private boolean DFSFind(int now, int aim) {
         this.pointsTemp[now] = 1;
