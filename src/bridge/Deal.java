@@ -28,7 +28,7 @@ public class Deal {
         //this.unions = new ArrayList<>();
         this.Component = 0;
         this.edgeNum = 0;
-        File data = new File("D:\\Algorithm\\src\\bridge\\disgust.txt");
+        File data = new File("D:\\Algorithm\\src\\bridge\\testD.txt");
         try {
             BufferedReader br = new BufferedReader(new FileReader(data));
             String str;
@@ -103,15 +103,60 @@ public class Deal {
     }
 
 
-    public void UnionNewDeal() {
+    public long UnionNewDeal() {
+        this.DFN = new int[this.pointsNumber];
+        this.LOW = new int[this.pointsNumber];
+        this.height = 0;
+        this.stack = new Stack<>();
+        ArrayList<Integer> list = new ArrayList<>();
+        int[] temp = new int[this.pointsNumber];
+        this.unionLabel = new int[this.pointsNumber];
+        int[] rank = new int[this.pointsNumber];
+        int tempEdgeSize = this.edge.size(), i;
         long startNs, endNs;
         startNs = System.nanoTime();
-        this.UnionCount();
+        initTempRec();
+        for (i = 0; i < this.pointsNumber; i++) {
+            temp[i] = -1;
+        }
+        for (i = 0; i < this.pointsNumber; i++) {
+            this.unionLabel[i] = i;
+        }
+
+        for (i = 0; i < tempEdgeSize; i++) {
+            Edge tempE = this.edge.get(i);
+            replaceRootRank(temp, rank, tempE.v1, tempE.v2);
+        }
+
+        for (i = 0; i < this.pointsNumber; i++) {
+            if (temp[i] == -1) {
+                continue;
+            }
+            this.unionLabel[i] = getRoot(temp, i);
+        }
+
+        for (i = 0; i < this.pointsNumber; i++) {
+            int index = this.unionLabel[i];
+            if (list.contains(index))
+                continue;
+            list.add(index);
+            DFSTFind(index, index);
+        }
+
+        for (i = 0; i < this.edgeNum; i++) {
+            Edge tempE = edge.get(i);
+            if ((this.DFN[tempE.v2] == this.LOW[tempE.v2] || this.DFN[tempE.v1] == this.LOW[tempE.v1] ) && this.LOW[tempE.v2] != this.LOW[tempE.v1]) {
+                this.Component ++;
+            }
+        }
+        //this.UnionCount();
         endNs = System.nanoTime();
         System.out.println("使用并查集得存在桥的数目为："+this.Component+"\n用时"+(endNs - startNs)+"纳秒");
+        return endNs - startNs;
     }
 
-    private void UnionCount() { //tarjan
+
+    /*private void UnionCount() { //tarjan
         initTempRec();
         this.DFN = new int[this.pointsNumber];
         this.LOW = new int[this.pointsNumber];
@@ -137,25 +182,13 @@ public class Deal {
             DFSTFind(this.unionLabel[i], this.unionLabel[i]);
         }
 
-        ////////////////////
-        /*for (i = 0; i < this.pointsNumber; i++) {
-
-                System.out.println("第" + i + "个点，DFN："+ DFN[i] +"，LOW："+ LOW[i]);
-
-        }*/
-
-
         for (i = 0; i < this.edgeNum; i++) {
             Edge temp = edge.get(i);
             if ((this.DFN[temp.v2] == this.LOW[temp.v2] || this.DFN[temp.v1] == this.LOW[temp.v1] ) && this.LOW[temp.v2] != this.LOW[temp.v1]) {
-                //System.out.println("当前桥是(" + temp.v1 + ", " + temp.v2 + ")");
                 this.Component ++;
             }
         }
-
-
-        ////////////////////
-    }
+    }*/
 
     private void DFSTFind(int index, int last) {
         this.pointsTemp[index] = 1;
@@ -190,24 +223,6 @@ public class Deal {
             }
         }
     }
-
-    /*private void replaceRoot(int[] arr, int s, int d) {
-        if (arr[s] == -1 && arr[d] == -1) {
-            arr[s] = s;
-            arr[d] = s;
-        } else if (arr[s] == -1 || arr[d] == -1) {
-            int temp = arr[s] == -1?getRoot(arr, d):getRoot(arr, s);
-            //int temp = arr[s] == -1?arr[d]:arr[s];
-            arr[s] = temp;
-            arr[d] = temp;
-        } else {
-            int index1 = getRoot(arr, s);
-            int index2 = getRoot(arr, d);
-            if (index1 != index2) {
-                arr[index2] = arr[index1];
-            }
-        }
-    }*/
 
     private void replaceRootRank(int[] arr, int[] rank, int s, int d) {
         if (arr[s] == -1 && arr[d] == -1) {
