@@ -1,5 +1,7 @@
 package bridge;
 
+import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Stack;
@@ -24,21 +26,22 @@ public class Deal {
     public Deal() {
         this.edge = new ArrayList<>();
         //this.unions = new ArrayList<>();
+        this.Component = 0;
         this.edgeNum = 0;
-        File data = new File("D:\\Ultimate\\Algorithm\\src\\bridge\\testD.txt");
+        File data = new File("D:\\Algorithm\\src\\bridge\\testD.txt");
         try {
             BufferedReader br = new BufferedReader(new FileReader(data));
             String str;
             String[] strArr;
             while((str = br.readLine()) != null) {
                 strArr = str.split(" +");
-
                 if (strArr.length < 2) {
-
                     this.pointsNumber = Integer.parseInt(strArr[0]);
                     this.points = new int[this.pointsNumber][this.pointsNumber];
                 } else {
-
+                    if (this.pointsNumber == 0) {
+                        break;
+                    }
                     this.edgeNum += 1;
                     int i = Integer.parseInt(strArr[0]), j = Integer.parseInt(strArr[1]);
                     this.edge.add(i<j?new Edge(i, j):new Edge(j, i));
@@ -57,7 +60,7 @@ public class Deal {
     }
 
     private void init() {
-        this.Component = this.UnionCount();
+        this.UnionCount();
         System.out.println("一共有"+this.edge.size()+"条边");
         System.out.println("一共存在"+Component+"个连通片");
     }
@@ -109,10 +112,10 @@ public class Deal {
 
     private int UnionCount() { //tarjan
         initTempRec();
-        /*this.DFN = new int[this.pointsNumber];
+        this.DFN = new int[this.pointsNumber];
         this.LOW = new int[this.pointsNumber];
         this.height = 0;
-        this.stack = new Stack<>();*/
+        this.stack = new Stack<>();
         this.unionLabel = new int[this.pointsNumber];
         ArrayList<Integer> list = new ArrayList<>();
         int tempEdgeSize = this.edge.size(), i;
@@ -130,7 +133,9 @@ public class Deal {
             if (list.contains(this.unionLabel[i]))
                 continue;
             list.add(this.unionLabel[i]);
+            DFSTFind(this.unionLabel[i]);
         }
+        System.out.println("暴力结果为"+ list.size());
         return list.size();
     }
 
@@ -143,7 +148,7 @@ public class Deal {
             if (this.points[index][i] <= 0) {
                 continue;
             }
-            if (this.DFN[i] > 0) {
+            if (this.DFN[i] == 0) {
                 DFSTFind(i);
                 this.LOW[index] = Math.min(this.LOW[index], this.LOW[i]);
             } else if (this.pointsTemp[i] > 0) {
@@ -191,7 +196,7 @@ public class Deal {
         if (arr[s] == -1 && arr[d] == -1) {
             arr[s] = s;
             arr[d] = s;
-            rank[d] = 1;
+            rank[s] = 1;
         } else if (arr[s] == -1 || arr[d] == -1) {
             int temp = arr[s] == -1?getRoot(arr, d):getRoot(arr, s);
             //int temp = arr[s] == -1?arr[d]:arr[s];
