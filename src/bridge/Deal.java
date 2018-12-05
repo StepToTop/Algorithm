@@ -28,7 +28,7 @@ public class Deal {
         //this.unions = new ArrayList<>();
         this.Component = 0;
         this.edgeNum = 0;
-        File data = new File("D:\\Algorithm\\src\\bridge\\testD.txt");
+        File data = new File("D:\\Algorithm\\src\\bridge\\disgust.txt");
         try {
             BufferedReader br = new BufferedReader(new FileReader(data));
             String str;
@@ -56,13 +56,10 @@ public class Deal {
         }catch (Exception e) {
             System.out.println(e.toString());
         }
-        init();
     }
 
     private void init() {
-        this.UnionCount();
         System.out.println("一共有"+this.edge.size()+"条边");
-        System.out.println("一共存在"+Component+"个连通片");
     }
 
     public long UnionDeal() {
@@ -88,13 +85,10 @@ public class Deal {
         int tempEdgeSize = this.edge.size(), i;
         for (i = 0; i < this.pointsNumber; i++) {
             temp[i] = -1;
-//            temp[i] = i;
         }
 
         for (i = 0; i < tempEdgeSize; i++) {
             Edge tempE = this.edge.get(i);
-//            replaceRoot(temp, tempE.v1, tempE.v2);
-//            replaceAll(temp, temp[tempE.v2], temp[tempE.v1]);
             replaceRootRank(temp, rank, tempE.v1, tempE.v2);
         }
 
@@ -104,13 +98,20 @@ public class Deal {
             result = false;
         } else {
             result = getRoot(temp, v1) == getRoot(temp, v2);
-//            result = r1 == r2;
         }
-
         return result;
     }
 
-    private int UnionCount() { //tarjan
+
+    public void UnionNewDeal() {
+        long startNs, endNs;
+        startNs = System.nanoTime();
+        this.UnionCount();
+        endNs = System.nanoTime();
+        System.out.println("使用并查集得存在桥的数目为："+this.Component+"\n用时"+(endNs - startNs)+"纳秒");
+    }
+
+    private void UnionCount() { //tarjan
         initTempRec();
         this.DFN = new int[this.pointsNumber];
         this.LOW = new int[this.pointsNumber];
@@ -133,13 +134,30 @@ public class Deal {
             if (list.contains(this.unionLabel[i]))
                 continue;
             list.add(this.unionLabel[i]);
-            DFSTFind(this.unionLabel[i]);
+            DFSTFind(this.unionLabel[i], this.unionLabel[i]);
         }
-        System.out.println("暴力结果为"+ list.size());
-        return list.size();
+
+        ////////////////////
+        /*for (i = 0; i < this.pointsNumber; i++) {
+
+                System.out.println("第" + i + "个点，DFN："+ DFN[i] +"，LOW："+ LOW[i]);
+
+        }*/
+
+
+        for (i = 0; i < this.edgeNum; i++) {
+            Edge temp = edge.get(i);
+            if ((this.DFN[temp.v2] == this.LOW[temp.v2] || this.DFN[temp.v1] == this.LOW[temp.v1] ) && this.LOW[temp.v2] != this.LOW[temp.v1]) {
+                //System.out.println("当前桥是(" + temp.v1 + ", " + temp.v2 + ")");
+                this.Component ++;
+            }
+        }
+
+
+        ////////////////////
     }
 
-    private void DFSTFind(int index) {
+    private void DFSTFind(int index, int last) {
         this.pointsTemp[index] = 1;
         this.DFN[index] = ++this.height;
         this.LOW[index] = this.height;
@@ -149,15 +167,14 @@ public class Deal {
                 continue;
             }
             if (this.DFN[i] == 0) {
-                DFSTFind(i);
+                DFSTFind(i, index);
                 this.LOW[index] = Math.min(this.LOW[index], this.LOW[i]);
-            } else if (this.pointsTemp[i] > 0) {
+            } else if (this.pointsTemp[i] > 0 && (last != i || this.points[index][last] > 1)) {
                 this.LOW[index] = Math.min(this.LOW[index], this.DFN[i]);
             }
         }
         if (this.DFN[index] == this.LOW[index]) {
             this.pointsTemp[index] = 0;
-            this.Component++;
             while (this.stack.lastElement() != index) {
                 this.pointsTemp[this.stack.lastElement()] = 0;
                 this.stack.pop();
