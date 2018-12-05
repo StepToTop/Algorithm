@@ -9,12 +9,14 @@ public class Main {
             long dfs = 0, union = 0;
             while(j-- != 0) {
                 new GenJ("D:\\Ultimate\\Algorithm\\src\\bridge\\testD", i * 1000, i * 2000);
-                dfs += (new Deal()).DFSDeal();
+                dfs += (new Deal()).newDFSDeal();
                 union += (new Deal()).UnionDeal();
             }
             System.out.println("///////////DFS："+ dfs/3 +"纳秒；Union:"+ union/3 +"纳秒///////////");
 
         }
+        /*(new Deal()).newDFSDeal();
+        (new Deal()).UnionDeal();*/
     }
 
 }

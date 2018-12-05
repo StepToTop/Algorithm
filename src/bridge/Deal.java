@@ -94,6 +94,7 @@ public class Deal {
 
     private boolean UnionFind(int v1, int v2) {
         int[] temp = new int[this.pointsNumber];
+        int[] rank = new int[this.pointsNumber];
         int tempEdgeSize = this.edge.size(), i;
         for (i = 0; i < this.pointsNumber; i++) {
             temp[i] = -1;
@@ -102,8 +103,9 @@ public class Deal {
 
         for (i = 0; i < tempEdgeSize; i++) {
             Edge tempE = this.edge.get(i);
-            replaceRoot(temp, tempE.v1, tempE.v2);
+//            replaceRoot(temp, tempE.v1, tempE.v2);
 //            replaceAll(temp, temp[tempE.v2], temp[tempE.v1]);
+            replaceRootRank(temp, rank, tempE.v1, tempE.v2);
         }
 
         int r1 = temp[v1], r2 = temp[v2];
@@ -170,6 +172,33 @@ public class Deal {
         }
     }
 
+    private void replaceRootRank(int[] arr, int[] rank, int s, int d) {
+        if (arr[s] == -1 && arr[d] == -1) {
+            arr[s] = s;
+            arr[d] = s;
+            rank[d] = 1;
+        } else if (arr[s] == -1 || arr[d] == -1) {
+            int temp = arr[s] == -1?getRoot(arr, d):getRoot(arr, s);
+            //int temp = arr[s] == -1?arr[d]:arr[s];
+            arr[s] = temp;
+            arr[d] = temp;
+            rank[temp] ++;
+        } else {
+            int index1 = getRoot(arr, s);
+            int index2 = getRoot(arr, d);
+            if (index1 == index2) {
+                return;
+            } else if (rank[index1] > rank[index2]) {
+                arr[index2] = index1;
+            } else if (rank[index2] > rank[index1]) {
+                arr[index1] = index2;
+            } else {
+                arr[index2] = index1;
+                rank[index1] ++;
+            }
+        }
+    }
+
     private int getRoot(int[] temp, int index) {
         while(index != temp[index]) {
             index = temp[index];
@@ -181,7 +210,7 @@ public class Deal {
         this.pointsTemp = new int[this.pointsNumber];
     }
 
-    public void newDFSDeal() {
+    public long newDFSDeal() {
         int count = 0;
         long startNs, endNs;
         startNs = System.nanoTime();
@@ -202,6 +231,7 @@ public class Deal {
         }
         endNs = System.nanoTime();
         System.out.println("使用dfs检测得存在桥的数目为："+count+"\n用时"+(endNs - startNs)+"纳秒");
+        return endNs - startNs;
     }
 
     public long DFSDeal() {
