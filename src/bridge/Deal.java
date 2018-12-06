@@ -75,7 +75,7 @@ public class Deal {
             edge.add(i, temp);
         }
         endNs = System.nanoTime();
-        System.out.println("使用并查集得存在桥的数目为："+count+"\n用时"+(endNs - startNs)+"纳秒");
+        System.out.println("使用优化后的并查集得存在桥的数目为："+count+"\n用时"+(endNs - startNs)+"纳秒");
         return (endNs - startNs);
     }
 
@@ -151,7 +151,7 @@ public class Deal {
         }
         //this.UnionCount();
         endNs = System.nanoTime();
-        System.out.println("使用并查集得存在桥的数目为："+this.Component+"\n用时"+(endNs - startNs)+"纳秒");
+        System.out.println("使用优化后的并查集+tarjan得存在桥的数目为："+this.Component+"\n用时"+(endNs - startNs)+"纳秒");
         return endNs - startNs;
     }
 
