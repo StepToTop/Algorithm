@@ -28,7 +28,7 @@ public class Deal {
         //this.unions = new ArrayList<>();
         this.Component = 0;
         this.edgeNum = 0;
-        File data = new File("D:\\Algorithm\\src\\bridge\\disgust.txt");
+        File data = new File("D:\\Ultimate\\Algorithm\\src\\bridge\\disgust.txt");
         try {
             BufferedReader br = new BufferedReader(new FileReader(data));
             String str;
