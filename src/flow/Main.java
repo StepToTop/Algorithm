@@ -36,19 +36,23 @@ public class Main {
         for (int i = 0; i < this.eNum; i++) {
             s = in.nextInt();
             t = in.nextInt();
-            this.nodes[s].table.add(t);
+            if (!this.nodes[s].table.contains(t)) {
+                this.nodes[s].table.add(t);
+            }
+            if (!this.nodes[t].table.contains(s)) {
+                this.nodes[t].table.add(s);
+            }
             f[t][s] = r[s][t] = (c[s][t] += in.nextInt());
-
         }
         while(BFS());
-        for (int i = 0; i < this.pNum; i++) {
+        /*for (int i = 0; i < this.pNum; i++) {
             for (int j = 0; j < this.pNum; j++) {
                 if (c[i][j] > 0 || f[i][j] == 0)
                     continue;
                 this.r[i][j] += this.f[i][j] - this.r[j][i];
             }
         }
-        while(BFS());
+        while(BFS());*/
         //debug();
     }
 
@@ -75,10 +79,6 @@ public class Main {
             for (int point : this.nodes[temp.now].table) {
                 if (this.r[temp.now][point] > 0 && visited[point] == 0) {
                     int weight = temp.weight<this.r[temp.now][point]?temp.weight:this.r[temp.now][point];
-                    if (weight == 0){
-                        releasePath(temp.steps, visited);
-                        continue; //没有路了
-                    }
                     visited[point] = 1;
                     exc.offer(new Path(point, weight, temp.steps + point + " "));
                 }
@@ -86,7 +86,7 @@ public class Main {
         }
 
         if (flag) {
-            System.out.println(minPath + "使用权重：" + minWeight);
+            //System.out.println(minPath + "使用权重：" + minWeight);
             dealRest(minPath, minWeight);
             this.result += minWeight;
         }
@@ -99,6 +99,7 @@ public class Main {
             int s = Integer.parseInt(paths[i-1]);
             int t = Integer.parseInt(paths[i]);
             this.r[s][t] -= weight;
+            this.r[t][s] += weight;
         }
     }
 
