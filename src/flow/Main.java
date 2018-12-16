@@ -1,12 +1,12 @@
 package flow;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.Scanner;
+import java.util.*;
+import java.io.*;
 
 public class Main {
     private int pNum, eNum, result;
+    private static StreamTokenizer in = new StreamTokenizer(new BufferedReader(new InputStreamReader(System.in)));
+    private PrintWriter out = new PrintWriter(new OutputStreamWriter(System.out));
     private Node[] nodes;
     private int[][] c, f, r;
     private class Node {
@@ -21,11 +21,19 @@ public class Main {
             this.steps = steps;
         }
     }
+    private static int getInt() {
+        try {
+            in.nextToken();
+        } catch (Exception e) {
+            System.out.print(e.toString());
+        }
+        return (int)in.nval;
+    }
+
     public Main () {
         int s, t;
-        Scanner in = new Scanner(System.in);
-        this.pNum = in.nextInt() + 1;
-        this.eNum = in.nextInt();
+        this.pNum = getInt() + 1;
+        this.eNum = getInt();
         this.c = new int[this.pNum][this.pNum];
         this.f = new int[this.pNum][this.pNum];
         this.r = new int[this.pNum][this.pNum];
@@ -34,15 +42,15 @@ public class Main {
             this.nodes[i] = new Node();
         }
         for (int i = 0; i < this.eNum; i++) {
-            s = in.nextInt();
-            t = in.nextInt();
+            s = getInt();
+            t = getInt();
             if (!this.nodes[s].table.contains(t)) {
                 this.nodes[s].table.add(t);
             }
             if (!this.nodes[t].table.contains(s)) {
                 this.nodes[t].table.add(s);
             }
-            f[t][s] = r[s][t] = (c[s][t] += in.nextInt());
+            f[t][s] = r[s][t] = (c[s][t] += getInt());
         }
         while(BFS());
         /*for (int i = 0; i < this.pNum; i++) {
@@ -118,8 +126,7 @@ public class Main {
 
 
     public static void main(String[] args) {
-        Scanner in = new Scanner(System.in);
-        int times = in.nextInt();
+        int times = getInt();
         int i = 1;
         while(i <= times) {
             Main test = new Main();

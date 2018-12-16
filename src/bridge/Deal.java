@@ -1,7 +1,5 @@
 package bridge;
 
-import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
-
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Stack;
@@ -28,7 +26,7 @@ public class Deal {
         //this.unions = new ArrayList<>();
         this.Component = 0;
         this.edgeNum = 0;
-        File data = new File("D:\\Ultimate\\Algorithm\\src\\bridge\\disgust.txt");
+        File data = new File("D:\\Algorithm\\src\\bridge\\testD.txt");
         try {
             BufferedReader br = new BufferedReader(new FileReader(data));
             String str;
@@ -108,7 +106,7 @@ public class Deal {
         startNs = System.nanoTime();
         this.UnionCount();
         endNs = System.nanoTime();
-        System.out.println("使用并查集得存在桥的数目为："+this.Component+"\n用时"+(endNs - startNs)+"纳秒");
+        System.out.println("使用并查集 + tarjan得存在桥的数目为："+this.Component+"\n用时"+(endNs - startNs)+"纳秒");
     }
 
     private void UnionCount() { //tarjan
