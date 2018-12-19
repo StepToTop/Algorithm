@@ -1,19 +1,19 @@
-package flow;
+package flow2;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.*;
 
 public class Main {
     private int pNum, eNum, result;
     private static StreamTokenizer in = new StreamTokenizer(new BufferedReader(new InputStreamReader(System.in)));
     private PrintWriter out = new PrintWriter(new OutputStreamWriter(System.out));
     private Node[] nodes;
-    private int[][] c, f, r;
+    private int[] visited;
+    private HashMap<Integer, Edge> edges; //source &
     private class Node {
-        ArrayList<Integer> table = new ArrayList<>();
+        HashMap<Integer, Integer> table = new HashMap<>(); // target & index
     }
+
     private class Path {
         int weight, now;
         String steps;
@@ -23,6 +23,18 @@ public class Main {
             this.steps = steps;
         }
     }
+
+    private class Edge {
+        int[] weight , rest;
+        HashMap<Integer, Integer> index = new HashMap<>();
+        Edge(int s1, int s2) {
+            index.put(s1, 0);
+            index.put(s2, 1);
+            weight = new int[2];
+            rest = new int[2];
+        }
+    }
+
     private static int getInt() {
         try {
             in.nextToken();
@@ -35,9 +47,7 @@ public class Main {
     public Main () {
         this.pNum = getInt() + 1;
         this.eNum = getInt();
-        this.c = new int[this.pNum][this.pNum];
-        this.f = new int[this.pNum][this.pNum];
-        this.r = new int[this.pNum][this.pNum];
+        this.edges = new HashMap<>();
         this.nodes = new Node[this.pNum];
         for (int i = 0; i < this.pNum; i++) {
             this.nodes[i] = new Node();
@@ -56,6 +66,8 @@ public class Main {
         //debug();
     }
 
+    /*
+    * todo:on upgrading
     private void inputEdgeByFile() {
         int s, t;
         File data = new File("D:\\Algorithm\\src\\flow\\test.txt");
@@ -78,30 +90,40 @@ public class Main {
         } catch (Exception e) {
             System.out.println(e.toString());
         }
-    }
+    }*/
 
     private void inputEdge() {
-        int s, t;
+        int s, t, flag = 0, num;
+        Edge temp;
         for (int i = 0; i < this.eNum; i++) {
             s = getInt();
             t = getInt();
-            if (!this.nodes[s].table.contains(t)) {
-                this.nodes[s].table.add(t);
+            num = getInt();
+            if (!this.nodes[s].table.containsKey(t)) { // 没有边
+                this.edges.put(flag, new Edge(s, t));
+                temp = this.edges.get(flag);
+                temp.weight[1] += num;
+                temp.rest[1] += num;
+                this.nodes[s].table.put(t, flag);
+                this.nodes[t].table.put(s, flag);
+                flag ++;
+            } else {
+                int index = this.nodes[s].table.get(t); //获取边的下标
+                temp = this.edges.get(index);
+                index = temp.index.get(t);
+                temp.weight[index] += num;
+                temp.rest[index] += num;
             }
-            if (!this.nodes[t].table.contains(s)) {
-                this.nodes[t].table.add(s);
-            }
-            f[t][s] = r[s][t] = (c[s][t] += getInt());
         }
     }
 
     private boolean BFS() {
         /* todo:要做反向边，BFS以及Dinic */
         Queue<Path> exc = new LinkedList<>();
-        int[] visited = new int[this.pNum];
+        this.visited = new int[this.pNum];
         visited[0] = 1;
         boolean flag = false;
-        int minWeight = Integer.MAX_VALUE;
+        int minWeight = Integer.MAX_VALUE, t, index;
         String minPath = "0 ";
         exc.offer(new Path(0, minWeight,minPath));
         while(!exc.isEmpty()) {
@@ -115,11 +137,14 @@ public class Main {
                 continue;
             }
 
-            for (int point : this.nodes[temp.now].table) {
-                if (this.r[temp.now][point] > 0 && visited[point] == 0) {
-                    int weight = temp.weight<this.r[temp.now][point]?temp.weight:this.r[temp.now][point];
-                    visited[point] = 1;
-                    exc.offer(new Path(point, weight, temp.steps + point + " "));
+            for (Map.Entry<Integer, Integer> entry: this.nodes[temp.now].table.entrySet() ) {
+                index = entry.getKey();
+                Edge tempE = this.edges.get(entry.getValue());
+                t = tempE.index.get(index);
+                if ( tempE.rest[t] > 0 && visited[index] == 0) {
+                    int weight = temp.weight < tempE.rest[t]?temp.weight:tempE.rest[t];
+                    visited[index] = 1;
+                    exc.offer(new Path(index, weight, temp.steps + index + " "));
                 }
             }
         }
@@ -134,11 +159,16 @@ public class Main {
 
     private void dealRest(String path, int weight) {
         String[] paths = path.split(" +");
+        Edge temp;
+        int p1, p2;
         for (int i = 1; i < paths.length; i++) {
             int s = Integer.parseInt(paths[i-1]);
             int t = Integer.parseInt(paths[i]);
-            this.r[s][t] -= weight;
-            this.r[t][s] += weight;
+            temp = this.edges.get(nodes[s].table.get(t));
+            p1 = temp.index.get(s);
+            p2 = temp.index.get(t);
+            temp.rest[p1] -= weight;
+            temp.rest[p2] += weight;
         }
     }
 
@@ -167,11 +197,9 @@ public class Main {
     }
 
     private void debug() {
-        for (int i = 1; i < this.pNum; i++) {
-            for (int j = 1; j < this.pNum; j++) {
-                System.out.print(this.r[i][j] + " ");
-            }
-            System.out.println();
+        for (Map.Entry<Integer, Edge> entry: this.edges.entrySet()) {
+            Edge temp = entry.getValue();
+            System.out.println(temp.rest[1]);
         }
     }
 }
