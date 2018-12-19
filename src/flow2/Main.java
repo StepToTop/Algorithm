@@ -4,11 +4,10 @@ import java.io.*;
 import java.util.*;
 
 public class Main {
-    private int pNum, eNum, result;
+    private int pNum, eNum, result, endPoint, startPoint;
     private static StreamTokenizer in = new StreamTokenizer(new BufferedReader(new InputStreamReader(System.in)));
     private PrintWriter out = new PrintWriter(new OutputStreamWriter(System.out));
     private Node[] nodes;
-    private int[] visited;
     private HashMap<Integer, Edge> edges; //source &
     private class Node {
         HashMap<Integer, Integer> table = new HashMap<>(); // target & index
@@ -47,13 +46,18 @@ public class Main {
     public Main () {
         this.pNum = getInt() + 1;
         this.eNum = getInt();
+        /////如果是通过读文件的话，不一定要用到输入
+        this.endPoint = 1000000;
+        this.startPoint = 0;
         this.edges = new HashMap<>();
+        ////小心这个，下面这个，懂了吧兄弟
+        this.pNum = 2000000;
         this.nodes = new Node[this.pNum];
         for (int i = 0; i < this.pNum; i++) {
             this.nodes[i] = new Node();
         }
         //inputEdgeByFile();
-        inputEdge();
+        inputEdgeByFile();
         while(BFS());
         /*for (int i = 0; i < this.pNum; i++) {
             for (int j = 0; j < this.pNum; j++) {
@@ -66,31 +70,38 @@ public class Main {
         //debug();
     }
 
-    /*
-    * todo:on upgrading
     private void inputEdgeByFile() {
-        int s, t;
+        int s, t, flag = 0;
+        Edge temp;
         File data = new File("D:\\Algorithm\\src\\flow\\test.txt");
         try {
             BufferedReader br = new BufferedReader(new FileReader(data));
             String str;
             String[] strArr;
             while((str = br.readLine()) != null) {
-                strArr = str.split(" +");
+                strArr = str.split(" +|\t+");
                 s = Integer.parseInt(strArr[0]);
                 t = Integer.parseInt(strArr[1]);
-                if (!this.nodes[s].table.contains(t)) {
-                    this.nodes[s].table.add(t);
+                if (!this.nodes[s].table.containsKey(t)) { // 没有边
+                    this.edges.put(flag, new Edge(s, t));
+                    temp = this.edges.get(flag);
+                    temp.weight[1] += 1;
+                    temp.rest[1] += 1;
+                    this.nodes[s].table.put(t, flag);
+                    this.nodes[t].table.put(s, flag);
+                    flag ++;
+                } else {
+                    int index = this.nodes[s].table.get(t); //获取边的下标
+                    temp = this.edges.get(index);
+                    index = temp.index.get(t);
+                    temp.weight[index] += 1;
+                    temp.rest[index] += 1;
                 }
-                if (!this.nodes[t].table.contains(s)) {
-                    this.nodes[t].table.add(s);
-                }
-                f[t][s] = r[s][t] = (c[s][t] += 1);
             }
-        } catch (Exception e) {
-            System.out.println(e.toString());
+        } catch (IOException e) {
+            System.err.println(e.toString());
         }
-    }*/
+    }
 
     private void inputEdge() {
         int s, t, flag = 0, num;
@@ -120,15 +131,15 @@ public class Main {
     private boolean BFS() {
         /* todo:要做反向边，BFS以及Dinic */
         Queue<Path> exc = new LinkedList<>();
-        this.visited = new int[this.pNum];
-        visited[0] = 1;
+        int[] visited = new int[this.pNum];
+        visited[startPoint] = 1;
         boolean flag = false;
         int minWeight = Integer.MAX_VALUE, t, index;
-        String minPath = "0 ";
-        exc.offer(new Path(0, minWeight,minPath));
+        String minPath = startPoint + " ";
+        exc.offer(new Path(startPoint, minWeight,minPath));
         while(!exc.isEmpty()) {
             Path temp = exc.poll();
-            if (temp.now == this.pNum - 2) {
+            if (temp.now == endPoint) {
                 if (temp.weight < minWeight) {
                     minWeight = temp.weight;
                     minPath = temp.steps;
@@ -167,8 +178,8 @@ public class Main {
             temp = this.edges.get(nodes[s].table.get(t));
             p1 = temp.index.get(s);
             p2 = temp.index.get(t);
-            temp.rest[p1] -= weight;
-            temp.rest[p2] += weight;
+            temp.rest[p2] -= weight;
+            temp.rest[p1] += weight;
         }
     }
 
