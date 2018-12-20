@@ -43,12 +43,12 @@ public class Main {
         return (int)in.nval;
     }
 
-    public Main () {
-        this.pNum = getInt() + 1;
-        this.eNum = getInt();
+    public Main (int start, int end, int pnum, int edgenum) {
+        this.pNum = pnum + 1;
+        this.eNum = edgenum;
         /////如果是通过读文件的话，不一定要用到输入
-        this.endPoint = 1000000;
-        this.startPoint = 0;
+        this.endPoint = end;
+        this.startPoint = start;
         this.edges = new HashMap<>();
         ////小心这个，下面这个，懂了吧兄弟
         this.pNum = 2000000;
@@ -56,9 +56,13 @@ public class Main {
         for (int i = 0; i < this.pNum; i++) {
             this.nodes[i] = new Node();
         }
-        //inputEdgeByFile();
+        //inputEdge();
         inputEdgeByFile();
+        long startNs, endNs;
+        startNs = System.nanoTime();
         while(BFS());
+        endNs = System.nanoTime();
+        System.out.println("以" + this.startPoint+"点为源，"+this.endPoint+"点为终得到的最大流为" + this.result + "用时" + (endNs - startNs)/1000000 + "毫秒");
         /*for (int i = 0; i < this.pNum; i++) {
             for (int j = 0; j < this.pNum; j++) {
                 if (c[i][j] > 0 || f[i][j] == 0)
@@ -129,40 +133,38 @@ public class Main {
     }
 
     private boolean BFS() {
-        /* todo:要做反向边，BFS以及Dinic */
-        Queue<Path> exc = new LinkedList<>();
-        int[] visited = new int[this.pNum];
+        Queue<Path> exc = new LinkedList<>(); //初始化队列
+        int[] visited = new int[this.pNum]; //初始化访问记录数组
         visited[startPoint] = 1;
+        //初始化道路参数
         boolean flag = false;
         int minWeight = Integer.MAX_VALUE, t, index;
-        String minPath = startPoint + " ";
+        String minPath = startPoint + " "; //使用字符串保存路径
         exc.offer(new Path(startPoint, minWeight,minPath));
+        //开始BFS
         while(!exc.isEmpty()) {
-            Path temp = exc.poll();
+            Path temp = exc.poll(); //弹出队列中的最后一条路径
             if (temp.now == endPoint) {
                 if (temp.weight < minWeight) {
                     minWeight = temp.weight;
                     minPath = temp.steps;
                 }
-                flag = true; //证明存在过这种东西
+                flag = true; //存在增广路径
                 continue;
             }
-
-            for (Map.Entry<Integer, Integer> entry: this.nodes[temp.now].table.entrySet() ) {
+            for (Map.Entry<Integer, Integer> entry: this.nodes[temp.now].table.entrySet() ) { //查看下一个节点是否存在
                 index = entry.getKey();
                 Edge tempE = this.edges.get(entry.getValue());
                 t = tempE.index.get(index);
                 if ( tempE.rest[t] > 0 && visited[index] == 0) {
-                    int weight = temp.weight < tempE.rest[t]?temp.weight:tempE.rest[t];
+                    int weight = temp.weight < tempE.rest[t]?temp.weight:tempE.rest[t]; //更新路径的大小
                     visited[index] = 1;
                     exc.offer(new Path(index, weight, temp.steps + index + " "));
                 }
             }
         }
-
         if (flag) {
-            //System.out.println(minPath + "使用权重：" + minWeight);
-            dealRest(minPath, minWeight);
+            dealRest(minPath, minWeight);  //对路径进行清算，减少
             this.result += minWeight;
         }
         return flag;
@@ -199,10 +201,12 @@ public class Main {
 
     public static void main(String[] args) {
         int times = getInt();
-        int i = 1;
+        int i = 1, s, t, n = getInt(), e = getInt();
         while(i <= times) {
-            Main test = new Main();
-            System.out.println("Case "+i+": " + test.getResult());
+            s = (int)(Math.random()*n);
+            t = (int)(Math.random()*n);
+            new Main(s, t, n, e);
+//            new Main(0,5, n, e);
             i++;
         }
     }
