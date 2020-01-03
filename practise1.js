@@ -1,6 +1,9 @@
-
-
-
+/**
+ * 
+ * @param {Array} arr_2_dim 
+ * @param {Number} num 
+ * 我的写法（左？下？左下？）
+ */
 function search_in_2_dim2(arr_2_dim, num) {
   if (!(arr_2_dim instanceof Array && arr_2_dim[0] instanceof Array) || num > arr_2_dim[arr_2_dim.length][arr_2_dim[0].length]) {
     return false, NaN, NaN;
@@ -22,6 +25,12 @@ function search_in_2_dim2(arr_2_dim, num) {
   }
   return true, i, j;
 }
+/**
+ * 牛逼的做法
+ * 右上角比较
+ * 往下走
+ */
+
 
 
 let result = search_in_2_dim2()
